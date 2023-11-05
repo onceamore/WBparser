@@ -31,7 +31,7 @@ async function getDetailData(id, token, dateFrom, dateTo) {
     if (response.status === 200) {
         return (response.data)
     } else {
-        return (null)
+        return null
     }
 
 }
@@ -143,6 +143,16 @@ const saveToDbCampaignData = async (campaign) => {
 const getAllCampaignsFromDb = async (username) => {
     const campaignsList = await Campaign.find({});
     return campaignsList
+}
+
+const parseCampaignData = async (data) => {
+    data.days.forEach(day => {
+        day.apps.forEach(app => {
+            app.nm.forEach(product => {
+
+            })
+        })
+    })
 }
 
 module.exports = { campaignList, getDetailData, processCampaignData, saveToDbCampaignData, getAllCampaignsFromDb };

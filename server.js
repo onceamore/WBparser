@@ -8,6 +8,7 @@ const delay = ms => new Promise(resolve => setTimeout(resolve, ms))
 const { campaignList, getDetailData, processCampaignData, saveToDbCampaignData, getAllCampaignsFromDb } = require('./src/controllers/campaignController');
 
 const { connectDatabase, closeDatabase, createUser, updateUserTokens, getAllUsers } = require('./src/controllers/databaseController');
+const {processToken, aggregateStatistic, aggregateStatisticByDate} = require("./src/controllers/gavnoController");
 
 require('dotenv').config();
 
@@ -82,6 +83,27 @@ app.post('/wbadv/updateAllCampaigns', async (req, res) => {
 
     } catch (err) { res.send('Campaign updation failed:' + err); }
 });
+
+
+app.post('/wbadv/loadAdsByToken', async (req, res, next) => {
+    const {token} = req.body;
+    if(token) {
+        res.status(200).json({message: "ok"});
+        processToken(token);
+    } else {
+        res.status(200).json({message: "not ok"});
+    }
+});
+
+app.post('/wbadv/getStatisticByToken', async (req, res, next) => {
+    const {token} = req.body;
+    if(token) {
+        const data = (await aggregateStatisticByDate(token));
+        res.status(200).json({message: "ok", count: data.length, data});
+    } else {
+        res.status(200).json({message: "not ok"});
+    }
+})
 
 
 app.listen(port, () => {
