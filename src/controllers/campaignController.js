@@ -55,11 +55,9 @@ const processCampaignData = async (campaignData, token) => {
                     const nmId = nmData.nmId;
                     const date = day.date;
 
-                    // Find the index of the nmId in the result.nms array
                     const nmIndex = result.nms.findIndex(nm => nm.nmId === nmId);
 
                     if (nmIndex === -1) {
-                        // If nmId is not found, add it to the array
                         result.nms.push({
                             nmId: nmId,
                             dates: [{
@@ -108,7 +106,6 @@ const processCampaignData = async (campaignData, token) => {
             console.log(err);
         }
     });
-
     return result;
 };
 

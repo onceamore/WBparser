@@ -74,7 +74,6 @@ app.post('/wbadv/updateAllCampaigns', async (req, res) => {
 
         for (let i = 0; i < 3/*campaigns.length*/; i++) {
             const updatedCampaign = await processCampaignData(campaigns[i], req.headers.token);
-
             saveToDbCampaignData(updatedCampaign)
             await delay(5000);
         }
