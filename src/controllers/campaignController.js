@@ -113,12 +113,7 @@ const processCampaignData = async (campaignData, token) => {
 
 
 const saveToDbCampaignData = async (campaign) => {
-    console.log(campaign);
-
     const campaignData = await Campaign.findOne({ id: campaign.advertId });
-
-    //console.log(campaignData);
-    console.log(campaign);
 
     if (campaignData) {
         campaignData.nmids = campaign.nms
