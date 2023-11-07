@@ -122,8 +122,10 @@ const aggregateStatistic = async (token) => {
     ])
 }
 
-const aggregateStatisticByDate = async (token, startDate, endDate) => {
+const aggregateStatisticByDate = async (token, endDate, startDate) => {
 
+    console.log(startDate, endDate)
+    
     const campaigns = (await campaignList(token)).map(advert => advert.advertId);
     return Article.aggregate([
         {

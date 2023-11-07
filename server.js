@@ -93,23 +93,21 @@ app.post('/wbadv/loadAdsByToken', async (req, res, next) => {
         if (type === 'week') {
             const { startDate, endDate } = todayOffsetDays(1, 8, true)
             console.log(startDate, endDate)
-        const data = (await processToken(token, startDate, endDate));
-        console.log(data);
-        res.status(200).json({ message: "ok", count: data.length, data });
-    }
+            processToken(token, startDate, endDate);
+            res.status(200).json({ message: "ok" });
+        }
 
-} else {
-    res.status(200).json({ message: "not ok" });
-}
+    } else {
+        res.status(200).json({ message: "not ok" });
+    }
 });
 
 app.post('/wbadv/getStatisticByToken', async (req, res, next) => {
     const { token, type } = req.body;
 
     if (token && type) {
-
         if (type === 'week') {
-            const { startDate, endDate } = todayOffsetDays(1, 8, true)
+            const { startDate, endDate } = todayOffsetDays(1, 8, false)
             const data = (await aggregateStatisticByDate(token, startDate, endDate));
             res.status(200).json({ message: "ok", count: data.length, data });
         }
@@ -120,7 +118,7 @@ app.post('/wbadv/getStatisticByToken', async (req, res, next) => {
 });
 
 
-function todayOffsetDays(toOffset = 0, fromOffset = 0, string = FALSE) {
+function todayOffsetDays(toOffset = 0, fromOffset = 0, string = false) {
 
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - toOffset)
