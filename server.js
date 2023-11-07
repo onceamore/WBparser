@@ -2,6 +2,7 @@ const mongoose = require("mongoose");
 const express = require('express');
 const axios = require('axios');
 const bodyParser = require('body-parser');
+const morgan = require('morgan');
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms))
 
 
@@ -16,6 +17,7 @@ const app = express();
 const port = 3030;
 
 app.use(bodyParser.json());
+app.use(morgan('dev'));
 
 connectDatabase();
 
