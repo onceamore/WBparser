@@ -11,9 +11,19 @@ async function campaignList(advToken) {
         }
     }
 
-    const campaignList = await axios.get(url, params);
+    const campaignList = await axios.get(url, params)
+        .then(r => {
+            if (r.status === 200) {
+                return r.data;
+            }
+            return [];
+        })
+        .catch(e => {
+            console.log(e.toString());
+            return [];
+        });
 
-    return campaignList.data
+    return campaignList;
 }
 
 async function getDetailData(id, token, dateFrom, dateTo) {
@@ -150,4 +160,10 @@ const parseCampaignData = async (data) => {
     })
 }
 
-module.exports = { campaignList, getDetailData, processCampaignData, saveToDbCampaignData, getAllCampaignsFromDb };
+module.exports = {
+    campaignList,
+    getDetailData,
+    processCampaignData,
+    saveToDbCampaignData,
+    getAllCampaignsFromDb
+};
