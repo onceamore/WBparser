@@ -20,6 +20,7 @@ async function campaignList(advToken) {
         })
         .catch(e => {
             console.log(e.toString());
+            console.log("Failed token:", advToken);
             return [];
         });
 
