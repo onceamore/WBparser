@@ -3,7 +3,8 @@ const mongoose = require('mongoose');
 const Campaign = require("../schemas/Campaigns");
 
 async function campaignList(advToken) {
-    const url = "https://advert-api.wb.ru/adv/v0/adverts"
+    //const url = "https://advert-api.wb.ru/adv/v0/adverts"
+    const url = "https://advert-api.wb.ru/adv/v1/promotion/count";
 
     const params = {
         "headers": {
@@ -14,7 +15,16 @@ async function campaignList(advToken) {
     const campaignList = await axios.get(url, params)
         .then(r => {
             if (r.status === 200) {
-                return r.data;
+                const list = [];
+                r.data.adverts.forEach(item => {
+                    const {type, status, advert_list} = item;
+                    advert_list.forEach(ad => {
+                        list.push({
+                            type, status, ...ad
+                        })
+                    })
+                })
+                return list;
             }
             return [];
         })
