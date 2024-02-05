@@ -1,7 +1,48 @@
 const { campaignList, saveToDbCampaignData, processCampaignData, getDetailData } = require("./campaignController");
 const { Article } = require("../schemas/ArticleAdvertData");
+const {CheckTokenBytes} = require("../utils");
 
-const delay = ms => new Promise(resolve => setTimeout(resolve, ms))
+const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
+
+const TOKENS_IN_LOAD = [];
+
+const loadAdvertDataByToken = async (token, startDate, endDate) => {
+    if(TOKENS_IN_LOAD.includes(token)) return;
+    TOKENS_IN_LOAD.push(token);
+    const {payload, access} = CheckTokenBytes(token);
+    const seller_id = payload["oid"];
+    const CLUSTER_LENGTH = 15;
+    const campaigns = await campaignList(token);
+    const ids = campaigns.map(({advertId}) => advertId);
+    console.log(seller_id, `Founded ${ids.length} adverts`);
+    for(let CI = 0; CI < ids.length / CLUSTER_LENGTH; CI++) {
+        const startSlice = CI * CLUSTER_LENGTH;
+        console.log(seller_id, `Processing ${CI + 1} / ${Math.ceil(ids.length / CLUSTER_LENGTH)} (${startSlice} - ${startSlice + CLUSTER_LENGTH})`);
+        const sliced = ids.slice(startSlice, startSlice + CLUSTER_LENGTH);
+        console.log(seller_id, `Loading ${sliced}`);
+        const statistics = await getDetailData(sliced, token, startDate, endDate) || [];
+        console.log(seller_id, `Loaded ${statistics.map(({advertId}) => advertId)}`);
+        const bulkData = statistics.map(({advertId: advert_id, days}) =>
+            days.map(({date, apps}) =>
+                apps.map(({appType: app_type, nm}) =>
+                    nm.map(({atbs, clicks, cpc, cr, ctr, name, nmId: nm_id, orders, shks, sum, sum_price, views}) => ({
+                        updateOne: {
+                            filter: { advert_id, date, app_type },
+                            update: { $set: {
+                                    atbs, clicks, cpc, cr, ctr, name, nm_id, orders, shks, sum, sum_price, views
+                                }},
+                            upsert: true
+                        }
+                    }))
+                )
+            )
+        ).flatMap(value => value).flatMap(value => value).flatMap(value => value);
+        await Article.bulkWrite(bulkData);
+        await delay(1500 * 60);
+    }
+    TOKENS_IN_LOAD.splice(TOKENS_IN_LOAD.indexOf(token), 1);
+    console.log(seller_id, "Ended");
+}
 
 const processToken = async (token, startDate, endDate) => {
     console.log("С " + startDate, "По "+endDate)
@@ -196,4 +237,6 @@ module.exports = {
     processToken,
     aggregateStatistic,
     aggregateStatisticByDate,
+    loadAdvertDataByToken,
+    TOKENS_IN_LOAD
 }

@@ -9,7 +9,7 @@ const delay = ms => new Promise(resolve => setTimeout(resolve, ms))
 const { campaignList, getDetailData, processCampaignData, saveToDbCampaignData, getAllCampaignsFromDb } = require('./src/controllers/campaignController');
 
 const { connectDatabase, closeDatabase, createUser, updateUserTokens, getAllUsers } = require('./src/controllers/databaseController');
-const { processToken, aggregateStatistic, aggregateStatisticByDate } = require("./src/controllers/articleController");
+const { processToken, aggregateStatistic, aggregateStatisticByDate, loadAdvertDataByToken, TOKENS_IN_LOAD} = require("./src/controllers/articleController");
 
 require('dotenv').config();
 
@@ -21,7 +21,7 @@ app.use(morgan('dev'));
 
 connectDatabase();
 
-app.post('/user/createUser', async (req, res) => {
+/*app.post('/user/createUser', async (req, res) => {
 
     try {
         const userName = req.body.userName
@@ -75,7 +75,7 @@ app.post('/wbadv/updateAllCampaigns', async (req, res) => {
 
         const campaigns = await getAllCampaignsFromDb();
 
-        for (let i = 0; i < 3/*campaigns.length*/; i++) {
+        for (let i = 0; i < 3/!*campaigns.length*!/; i++) {
             const updatedCampaign = await processCampaignData(campaigns[i], req.headers.token);
             saveToDbCampaignData(updatedCampaign)
             await delay(5000);
@@ -84,23 +84,36 @@ app.post('/wbadv/updateAllCampaigns', async (req, res) => {
         res.send('Campaigns updated successfully');
 
     } catch (err) { res.send('Campaign updation failed:' + err); }
-});
+});*/
 
 
 app.post('/wbadv/loadAdsByToken', async (req, res, next) => {
-    const { token, type } = req.body;
+    let { token, startDate, endDate } = req.body;
 
-    if (token && type) {
+    const isValidStartDate = startDate && new Date(startDate).toISOString() === startDate;
+    startDate = isValidStartDate ? new Date(startDate) : new Date(Date.now() - 1000 * 60 * 60 * 24 * 14);
 
-        if (type === 'week') {
-            const { startDate, endDate } = todayOffsetDays(1, 8, true)
-            console.log(startDate, endDate)
-            processToken(token, startDate, endDate);
-            res.status(200).json({ message: "ok" });
-        }
+    const isValidEndDate = endDate && new Date(endDate).toISOString() === endDate;
+    endDate = isValidEndDate ? new Date(endDate) : new Date();
 
+    if (token && !TOKENS_IN_LOAD.includes(token)) {
+        console.log(startDate, endDate);
+        loadAdvertDataByToken(token, startDate, endDate);
+        res.status(200).json({
+            message: "ok",
+            dates: {
+                startDate: [startDate, isValidStartDate],
+                endDate: [endDate, isValidEndDate],
+            }
+        });
     } else {
-        res.status(200).json({ message: "not ok" });
+        res.status(200).json({
+            message: TOKENS_IN_LOAD.includes(token) ? "loading rn" : "not ok",
+            dates: {
+                startDate: [startDate, isValidStartDate],
+                endDate: [endDate, isValidEndDate],
+            }
+        });
     }
 });
 

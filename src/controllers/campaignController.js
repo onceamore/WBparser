@@ -1,6 +1,7 @@
 const axios = require('axios');
 const mongoose = require('mongoose');
 const Campaign = require("../schemas/Campaigns");
+const moment = require("moment");
 
 async function campaignList(advToken) {
     //const url = "https://advert-api.wb.ru/adv/v0/adverts"
@@ -37,24 +38,23 @@ async function campaignList(advToken) {
     return campaignList;
 }
 
-async function getDetailData(id, token, dateFrom, dateTo) {
+async function getDetailData(ids, token, dateFrom, dateTo) {
 
-    const url = `https://advert-api.wb.ru/adv/v1/fullstat?id=${id}&dateFrom=${dateFrom}&dateTo=${dateTo}`
-
+    const url = `https://advert-api.wb.ru/adv/v2/fullstats`;
     const params = {
         "headers": {
             "Authorization": token,
         }
     }
-
-
-    const response = await axios.get(url, params);
-    if (response.status === 200) {
-        return (response.data)
-    } else {
-        return null
-    }
-
+    const body = ids.map(id => ({
+        id, interval: { begin: moment(dateFrom).format("YYYY-MM-DD"), end: moment(dateTo).format("YYYY-MM-DD") }
+    }))
+    return await axios.post(url, body, params)
+        .then(result => result.data)
+        .catch(err => {
+            console.log(body, err?.status, err?.response);
+            return null
+        })
 }
 
 const processCampaignData = async (campaignData, token) => {
@@ -159,16 +159,6 @@ const saveToDbCampaignData = async (campaign) => {
 const getAllCampaignsFromDb = async (username) => {
     const campaignsList = await Campaign.find({});
     return campaignsList
-}
-
-const parseCampaignData = async (data) => {
-    data.days.forEach(day => {
-        day.apps.forEach(app => {
-            app.nm.forEach(product => {
-
-            })
-        })
-    })
 }
 
 module.exports = {
