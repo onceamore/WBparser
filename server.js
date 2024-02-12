@@ -122,15 +122,15 @@ app.post('/wbadv/getStatisticByToken', async (req, res, next) => {
 
     if(!token) return res.status(200).json({ message: "not ok" });
 
-    if (type) {
-        if (type === 'week') {
-            const { startDate, endDate } = todayOffsetDays(1, 8, false)
-            const data = (await aggregateStatisticByDate(token, startDate, endDate));
+    //if (type) {
+        //if (type === 'week') {
+            //const { startDate, endDate } = todayOffsetDays(1, 8, false)
+            const data = (await aggregateStatistic(token));
             res.status(200).json({ message: "ok", count: data.length, data });
-        }
-    } else {
-        res.status(200).json({ message: "not ok" });
-    }
+        //}
+    //} else {
+        //res.status(200).json({ message: "not ok" });
+    //}
 });
 
 
